@@ -1,0 +1,153 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: TextResources_en
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 075bc9b2cb6ccb94db9cc15d6de7820a, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 64780865536
+    m_Localized: Enter your access token...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 352073912320
+    m_Localized: 'Please enter your access token to link to your cluster account.
+
+      You
+      can create an access token from the following page:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 950693367808
+    m_Localized: <b>https://cluster.mu/en/account/tokens</b>
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1266260217856
+    m_Localized: Start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3002861457408
+    m_Localized: Login process is already in progress.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3145698480128
+    m_Localized: Invalid access token.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3301793697792
+    m_Localized: Authentication failed.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3405439143936
+    m_Localized: Network error.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3464234897408
+    m_Localized: Unknown error.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4199500582912
+    m_Localized: Select Template
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4697825841152
+    m_Localized: Logout
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4951652536320
+    m_Localized: Item Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5004706287616
+    m_Localized: Enter item name...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5127075106816
+    m_Localized: 'Drop your image here
+
+      or click here'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6234211979264
+    m_Localized: Upload
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6388096798720
+    m_Localized: Select Texture
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6737469739008
+    m_Localized: PNG Image
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6935046623232
+    m_Localized: Texture not specified.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7237791485952
+    m_Localized: Item name not specified.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7358994288640
+    m_Localized: Item name must be 64 characters or less.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7470369837056
+    m_Localized: 'Upload is complete!
+
+      You can check it from My Contents on
+      the web page.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7635654774784
+    m_Localized: Upload process interrupted.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7745113526272
+    m_Localized: Upload of item failed.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7875300528128
+    m_Localized: Exception occurred when loading prefab. Check Console for details.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8071774310400
+    m_Localized: Could not find AudioClip, please set AudioClip in ItemAudioSet.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8180088016896
+    m_Localized: Failed to retrieve AudioClip information.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8311940157440
+    m_Localized: 'Texture size is too large.
+
+      (maximum {0} x {0} px)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1500000643026944
+    m_Localized: Opaque
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1500107220291584
+    m_Localized: Cutout
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1500151788965888
+    m_Localized: Transparent
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

@@ -1,0 +1,17 @@
+{
+    "name": "ClusterVR.CreatorKit.GltfExtensions",
+    "rootNamespace": "",
+    "references": [
+        "Unity.net.yutopp.vjson",
+        "Unity.net.yutopp.vgltf.ext.vrm0"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

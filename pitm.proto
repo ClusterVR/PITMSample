@@ -1,0 +1,427 @@
+syntax = "proto3";
+package cluster.creatorkit;
+
+// Top-level description of the item template. Must be stored at glTF root extension like the following:
+// "extensions": {
+//    {"ClusterItem": {"item": "...URL-safe base64 encoded Item..."}},
+//    ...
+//  }
+message Item {
+    // Item template metadata
+    ItemMeta meta = 1;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Item behaviors
+
+    // If set, item become movable (via physics or animation). Corresponds to `MovableItemComponent` setting in Creator Kit.
+    MovableItem movable_item = 2;
+
+    // If set, item become ridable (sittable). Corresponds to `RidableItemComponent` setting in Creator Kit.
+    RidableItem ridable_item = 3;
+
+    // If set, item become grabbable. Corresponds to `GrabbableItemComponent` setting in Creator Kit.
+    GrabbableItem grabbable_item = 4;
+
+    // If set, item runs Cluster Script. Corresponds to `ScriptableItemComponent` setting in Creator Kit.
+    // Cluster Script reference is available at https://docs.cluster.mu/script/en/
+    ScriptableItem scriptable_item = 5;
+
+    // If set, item is an accessory. Corresponds to `AccessoryItemComponent` setting in Creator Kit.
+    // For now, if this is set, movable_item, ridable_item, grabbable_item, and scriptable_item must be unset.
+    AccessoryItem accessory_item = 6;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Resources contained within the item template
+
+    // Audio data usable in the item template. Corresponds to `ItemAudioSetListComponent` setting in Creator Kit.
+    // Each audio data is addressable via `$.audio(id)`
+    repeated ItemAudioSet item_audio_set_list = 7;
+
+    // Humanoid animations usable in the item template. Corresponds to `HumanoidAnimationList` setting in Creator Kit.
+    // Each humanoid animation is addressable via `$.humanoidAnimation(id)`
+    repeated HumanoidAnimation humanoid_animation_list = 8;
+
+    // Material references usable in the item template. Corresponds to `ItemMaterialSetListComponent` setting in Creator Kit.
+    // Each material reference is addressable via `$.material(id)`
+    repeated ItemMaterialSet item_material_set_list = 9;
+}
+
+// Item metadata
+message ItemMeta {
+    // human-readable, localized item names
+    repeated LocalizedText name = 1;
+
+    // Approximate size of the item (in meters, +Y up), used for grid-snapping
+    // The origin corresponds to the item's bottom center.
+    // size acts as box for grid snapping another item next to this item.
+    //
+    // e.g. 
+    // If this is a box-like object, all 3 values should be > 0.
+    // If this is a thin wall in YZ plane, size should be (0, approx-height, approx-width).
+    // If this is a thin pillar in Y axis, size should be (0, approx-height, 0).
+    // If this is a tiny object, size should be (0, 0, 0).
+    //
+    // Vector3 (int), xyz (length must be 3)
+    repeated uint32 size = 2;
+}
+
+// A pair of localized text and language code
+message LocalizedText {
+    // language code (compatible with https://cloud.google.com/translate/docs/languages)
+    string lang_code = 1;
+
+    // text in the language (newline is not allowed)
+    string text = 2;
+}
+
+// Configure item to be movable
+// Corresponds to https://docs.cluster.mu/creatorkit/en/item-components/movable-item/ in Creator Kit
+message MovableItem {
+    // If true, item is affected by physics (forces, etc.)
+    bool is_dynamic = 1;
+
+    // Mass of the item (kg)
+    // Will be clamped to 10^-7 to 10^9 for physics stability.
+    // If unset, minimum allowed value is used.
+    // It is recommended to set mass regardless of is_dynamic value.
+    float mass = 2;
+
+    // If set, ignore gravity when physics is enabled.
+    // disable_gravity specifies initial value of $.useGravity.
+    // $.useGravity can be dynamically modified afterward from Cluster Script.
+    //
+    // !disable_gravity:
+    // - is_dynamic: Physics is affected by gravity ($.useGravity = true）
+    // - !is_dynamic: No effect (no gravity is applied, $.useGravity = false）
+    // disable_gravity:
+    // - is_dynamic: No gravity（$.useGravity = false）
+    // - !is_dynamic: No effect (no gravity is applied, $.useGravity = false)
+    bool disable_gravity = 3;
+}
+
+// Configure item to be ridable.
+// Corresponds to https://docs.cluster.mu/creatorkit/en/item-components/ridable-item/ in Creator Kit
+//
+// RidableItem is mutually exclusive with GrabbableItem.
+// If RidableItem is set, 1 or more physical_shape or interatable_shape must exist,
+// in ItemNode of the item node or its (descendant) nodes.
+message RidableItem {
+    // glTF node index for Seat transform.
+    uint32 seat = 1;
+
+    // If set, override by exit_transform.
+    bool has_exit_transform = 2;
+    // glTF node index for exit transform.
+    uint32 exit_transform = 3;
+
+    // If set, override by left_grip.
+    bool has_left_grip = 4;
+    // glTF node index for left grip transform.
+    uint32 left_grip = 5;
+
+    // If set, override by right_grip.
+    bool has_right_grip = 6;
+    // glTF node index for right grip transform.
+    uint32 right_grip = 7;
+}
+
+// Configure item to be grabbable.
+// Corresponds to https://docs.cluster.mu/creatorkit/en/item-components/grabbable-item/ in Creator Kit.
+//
+// GrabbableItem requires MovableItem to be set.
+// GrabbableItem is mutually exclusive with RidableItem.
+// If GrabbableItem is set, 1 or more physical_shape or interatable_shape must exist,
+// in ItemNode of the item node or its (descendant) nodes.
+message GrabbableItem {
+    // If set, override grab position by grip.
+    bool has_grip = 1;
+    // glTF node index for grip transform.
+    uint32 grip = 2;
+}
+
+// Include Cluster Script source code in the item.
+message ScriptableItem {
+    // Cluster Script https://docs.cluster.mu/script/en/ source code
+    // must be 20kB or smaller.
+    string source_code = 1;
+}
+
+// Designates item as an accessory.
+// Mutually exclusive with MovableItem, RidableItem, GrabbableItem, and ScriptableItem.
+message AccessoryItem {
+    // Relative transform of the accessory to the avatar attachment point.
+    OffsetTransform default_offset_transform = 3;
+
+    // Relationship between the item and an avatar
+    oneof attach_case {
+        // Attach to one specific bone in an avatar.
+        AttachCaseToAvatar attach_case_to_avatar = 2;
+    }
+}
+
+// TRS (Translation, Rotation, Scale) transform in right-hand coordinates (+Y up, +Z forward, -X right)
+message OffsetTransform {
+    // 10 values in the following order:
+    // translation: xyz
+    // rotation: wxyz (unit quaternion)
+    // scale: xyz
+    repeated float translation_rotation_scale = 1;
+}
+
+// Avatar attachment point.
+message AttachCaseToAvatar {
+    // Default human body bone name. Bone structure follows VRM-1.0 humanoid bone.
+    // https://github.com/vrm-c/vrm-specification/blob/master/specification/VRMC_vrm-1.0/humanoid.md
+    //
+    // Allowed bone names:
+    // "Hips", "Spine", "Chest", "Neck", "Head",
+	// "LeftShoulder", "LeftUpperArm", "LeftLowerArm", "LeftHand",
+    // "LeftThumbIntermediate", "LeftIndexDistal", "LeftMiddleDistal", "LeftRingDistal", "LeftLittleDistal",
+    // "LeftUpperLeg", "LeftLowerLeg", "LeftFoot", "LeftToes",
+    // "RightShoulder", "RightUpperArm", "RightLowerArm", "RightHand",
+    // "RightThumbIntermediate", "RightIndexDistal", "RightMiddleDistal", "RightRingDistal", "RightLittleDistal"
+    // "RightUpperLeg", "RightLowerLeg", "RightFoot", "RightToes",
+    string default_human_body_bone_name = 1;
+}
+
+// Audio resource, usable in the item.
+message ItemAudioSet {
+    // Unique (within the item) name of the audio resource.
+    // id must be 1~64 characters. A character must be [',\-.0-9A-Z_a-z].
+    string id = 1; 
+
+    Audio audio = 2;
+    
+    bool loop = 3;
+}
+
+message Audio {
+    oneof audio_case {
+        Pcm pcm = 1;
+    }
+}
+
+message Pcm {
+    // Number of audio channels: 1~2
+    uint32 channels = 1;
+
+    // Audio sampling rate in Hz (max 48000)
+    uint32 sample_rate = 2;
+
+    // Audio samples.
+    // If channels > 1, samples will be interleaved (dataIndex = channelIndex + sampleIndex * channels).
+    // For stereo, left is channelIndex 0, right is 1.
+    // Values must be in[-1~+1], and length of data must be a multiple of channels.
+    repeated float data = 3;
+}
+
+// Single humanoid animation
+message HumanoidAnimation {
+    // Unique (within the item) name of the animation.
+    // id must be 1~64 characters. A character must be [',\-.0-9A-Z_a-z].
+    string id = 1;
+
+    // glTF index of the animation
+    // The referenced glTF animation should contain AnimationChannels that manipulate Unity's Muscles.
+    // Their Targets is specified by ClusterHumanoidAnimationTarget extension instead of node.
+    uint32 animation = 2;
+}
+
+// Material references available in the item.
+message ItemMaterialSet {
+    // Unique (within the item) name of the material.
+    // id must be 1~64 characters. A character must be [',\-.0-9A-Z_a-z].
+    string id = 1;
+
+    // glTF material index
+    uint32 material_index = 2;
+}
+
+
+// Node-level description of the item.
+// All glTF nodes in the must have ItemNode set.
+
+// ItemNode should be set to the node extension, like the following:
+// "extensions": {
+//    {"ClusterItemNode": {"itemNode": "...URL-safe base64 encoded ItemNode..."}},
+//    ...
+//  }
+//
+// All coordinates uses glTF coordinate system (right-hand, +Y up, +Z forward, -X right).
+// NOTE: to use in Unity (left-hand), coordinate conversion is necessary
+message ItemNode {
+    // Physical shape of the node
+    // Shape types are mutually exclusive.
+    //
+    // NOTE: for GrababbleItem and RidableItem, at least one ItemNode must contain 1 or more physical_shape or interactable_shape.
+    repeated PhysicalShape physical_shapes = 1;
+    repeated OverlapDetectorShape overlap_detector_shapes = 9;
+    repeated OverlapSourceShape overlap_source_shapes = 10;
+    repeated InteractableShape interactable_shapes = 6;
+    repeated ItemSelectShape item_select_shapes = 7;
+
+    // If set, treat this node (not its children) as a "main screen".
+    MainScreenView main_screen_view = 2;
+
+    // If true, this node and all its sub-nodes are invisible and have no collision detection.
+    // This value determines the initial value of Enabled, and is overwritten by setEnabled calls.
+    bool disabled = 3;
+
+    // If set, treat this node (not its children) as a mirror.
+    // For a proper mirror setup, the node must contain a glTF mesh that lies on XY plane (with normal pointing to Z-), in node local cooridnates.
+    // Non-planar meshes will stil display something, but the reflection will be incorrect.
+    Mirror mirror = 4;
+
+    // If set, this node (not its children) can display text.
+    TextView text_view = 11;
+}
+
+// Physical shape
+message PhysicalShape {
+    Shape shape = 1;
+}
+
+// OverlapDetector shape
+message OverlapDetectorShape {
+    Shape shape = 1;
+}
+
+// OverlapSource shape
+message OverlapSourceShape {
+    Shape shape = 1;
+}
+
+// Interactable shape
+message InteractableShape {
+    Shape shape = 1;
+}
+
+// Item interaction shape for use in World Craft edit mode.
+message ItemSelectShape {
+    Shape shape = 1;
+}
+
+message Shape {
+    oneof shape {
+        Box box = 1;
+        Sphere sphere = 2;
+        Capsule capsule = 3;
+        // In this context, mesh is limited to no-hole convex shape with 255 triangles or less.
+        Mesh mesh = 4;
+    }
+}
+
+message Box {
+    Vector3 center = 1;
+    Vector3 size = 2;
+}
+
+message Sphere {
+    Vector3 center = 1;
+    float radius = 2;
+}
+
+message Capsule {
+    Vector3 center = 1;
+    Direction direction = 2;
+    float height = 3;
+    float radius = 4;
+    // Capsule height direction
+    enum Direction {
+        X = 0;
+        Y = 1;
+        Z = 2;
+    }
+}
+
+message Mesh {
+    // Flattened position array of Vector3 [[x,y,z],[x,y,z],...] -> [x,y,z,x,y,z,...]
+    // Length must be a multiple of 3.
+    repeated float vertex_positions = 1;
+
+    // Flattened index array of Vector3 [[x,y,z],[x,y,z],...] -> [x,y,z,x,y,z,...]
+    // "Index" is a pre-flattening index of vertex_positions.
+    // Length must be a multiple of 3.
+    // A proper triangle is counter-clockwise (glTF standard).
+    // NOTE: Unity standard is clockwise (thus importer/expoter need to flip the order).
+    repeated int32 triangles = 2;
+}
+
+message Vector3 {
+    // Values of xyz in this order.
+    repeated float elements = 1;
+}
+
+// "Main screen" view.
+// Content of this view is controllable from Cluster app by users.
+//
+// More specifically, texture of the mesh of the node will be replaced by the screen image (or "default" image).
+// The image will be in the uv range [(0,0),(1,1)] (u is horizontal, v is vertical).
+message MainScreenView {
+    // Aspect ratio of the screen. (width / height)
+    // Tiling and offset of projected texture is automatically adjusted based on the source and screen aspect ratios.
+    float screen_aspect_ratio = 1;
+
+    // Specal material for the "main screen".
+    // If set, all materials of this node will be replaced to this material.
+    oneof material {
+        UnlitNonTiledWithBackgroundColor unlit_non_tiled_with_background_color = 2;
+    }
+}
+
+// A special unlit material for showing an image without tiling.
+// Image region (contained within UV range of [(0,0),(1,1)]) will display projected image, alpha-blended with background_color.
+// Other regions will display background_color.
+message UnlitNonTiledWithBackgroundColor {
+    // Color of the background color in RGBA order (4 values).
+    // Each value must be in [0,1] range.
+    // RGB is in Gamma space.
+    repeated float background_color = 1;
+}
+
+// Mirror
+message Mirror {}
+
+// Text display
+message TextView {
+    // Initial text value (1kB or less)
+    // Text content can be updated dynamically by calling SubNode.setText(...)
+    string text = 1;
+
+    // Initial text size. in [0, 5]. (1 means x-height of about 1 meter)
+    // Text size can be updated dynamically by calling SubNode.setTextSize(...)
+    float size = 2;
+
+    // Initial text anchor.
+    // Text anchor determine how bounding box of the text is aligned wrt the SubNode origin.
+    // Text anchor can be updated dynamically by calling SubNode.setTextAnchor(...)
+    TextAnchor text_anchor = 3;
+
+    // Initial text alignment.
+    // Text alignment determine how text is aligned when text contains multiple lines.
+    // Text alignment can be updated dynamically by calling SubNode.setTextAlignment(...)
+    TextAlignment text_alignment = 4;
+
+    // Initial text color.
+    // Text color is in RGBA order (4 values). All values are in [0, 1], and RGB values are in Gamma space.
+    // Text color can be updated dynamically by calling SubNode.setTextColor(...)
+    repeated float color = 5;
+
+    enum TextAnchor {
+        TEXT_ANCHOR_UPPER_LEFT = 0;
+        TEXT_ANCHOR_UPPER_CENTER = 1;
+        TEXT_ANCHOR_UPPER_RIGHT = 2;
+        TEXT_ANCHOR_MIDDLE_LEFT = 3;
+        TEXT_ANCHOR_MIDDLE_CENTER = 4;
+        TEXT_ANCHOR_MIDDLE_RIGHT = 5;
+        TEXT_ANCHOR_LOWER_LEFT = 6;
+        TEXT_ANCHOR_LOWER_CENTER = 7;
+        TEXT_ANCHOR_LOWER_RIGHT = 8;
+    }
+
+    enum TextAlignment {
+        TEXT_ALIGNMENT_LEFT = 0;
+        TEXT_ALIGNMENT_CENTER = 1;
+        TEXT_ALIGNMENT_RIGHT = 2;
+    }
+}
