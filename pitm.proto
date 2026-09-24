@@ -7,6 +7,8 @@ package cluster.creatorkit;
 //    ...
 //  }
 message Item {
+    reserved 12;
+
     // Item template metadata
     ItemMeta meta = 1;
 
@@ -44,6 +46,32 @@ message Item {
     // Material references usable in the item template. Corresponds to `ItemMaterialSetListComponent` setting in Creator Kit.
     // Each material reference is addressable via `$.material(id)`
     repeated ItemMaterialSet item_material_set_list = 9;
+
+    // Player Script usable in the item template. Set if the item template has a Player Script.
+    // Corresponds to https://docs.cluster.mu/creatorkit/en/item-components/player-script/ in Creator Kit.
+    // The script is registered to a player context via `$.setPlayerScript(playerHandle)`
+    PlayerScript player_script = 10;
+
+    // Icon images usable in the item template.
+    // Corresponds to https://docs.cluster.mu/creatorkit/en/item-components/icon-asset-list/ in Creator Kit.
+    // Each icon is addressable via `_.iconAsset(id)` in Player Script.
+    repeated IconAsset icon_asset_list = 11;
+
+    // How movements of synced transforms (the item pose and SubNodes) without a warp declaration are reflected on other clients.
+    // Corresponds to the `Movement Type` setting of `Item` component in Creator Kit.
+    // If unset, treated as MODE_LEGACY.
+    MovementType movement_type = 13;
+}
+
+// Movement interpolation setting of the item
+message MovementType {
+    enum Mode {
+        // Receiving clients automatically switch between warp and interpolation depending on the movement distance (legacy behavior)
+        MODE_LEGACY = 0;
+        // Always interpolate. Warps happen only with a warp declaration (`MovementOption` in Cluster Script)
+        MODE_SMOOTH = 1;
+    }
+    Mode mode = 1;
 }
 
 // Item metadata
@@ -63,6 +91,12 @@ message ItemMeta {
     //
     // Vector3 (int), xyz (length must be 3)
     repeated uint32 size = 2;
+
+    // Tags declared by the item, used to filter items in Cluster Script spatial query APIs
+    // (getItemsNear, raycast, raycastAll and getOverlaps, via ItemFilterOption.itemTag).
+    // Up to 32 tags. Each tag must be 1~64 characters. A character must be [',\-.0-9A-Z_a-z].
+    // Duplicate tags are not allowed.
+    repeated string item_tags = 3;
 }
 
 // A pair of localized text and language code
@@ -235,6 +269,27 @@ message ItemMaterialSet {
 
     // glTF material index
     uint32 material_index = 2;
+}
+
+// Include Player Script source code in the item.
+message PlayerScript {
+    // Cluster Script https://docs.cluster.mu/script/en/ source code
+    // must be 20kB or smaller.
+    string source_code = 1;
+}
+
+// Icon image usable in the item.
+message IconAsset {
+    // Unique (within the item) name of the icon.
+    // id must be 1~64 characters. A character must be [',\-.0-9A-Z_a-z].
+    string id = 1;
+
+    // glTF image index
+    // - both width and height must be 256px or less
+    // - an aspect ratio other than 1 is accepted, but such an image may be scaled and distorted
+    // - both opaque and transparent images are accepted
+    // - the image is masked into a circle, and displaying the whole image area is not guaranteed
+    uint32 image_index = 2;
 }
 
 
